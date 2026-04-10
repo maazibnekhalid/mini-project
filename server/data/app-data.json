@@ -1,0 +1,44 @@
+{
+  "users": [
+    {
+      "_id": "a68579c3-9f53-4cc7-896c-5e5dd1c21146",
+      "name": "Test User",
+      "email": "test@example.com",
+      "password": "$2b$10$7Aldn9EymUWde2lpD2.ooepqRZl68s1eMJ3BEF88ENWkaPlNuKyz.",
+      "role": "user",
+      "createdAt": "2026-04-10T12:53:56.362Z"
+    },
+    {
+      "_id": "6fe71fb8-5b0e-4d47-b975-9575c9457392",
+      "name": "maaz khan",
+      "email": "maazibnekhalid@gmail.com",
+      "password": "$2b$10$En6wK/oXDGAJNBUd5O8oi.n./KR7OLmLo3tLinEfXmPa/8AaTXiF6",
+      "role": "user",
+      "createdAt": "2026-04-10T12:58:51.472Z"
+    }
+  ],
+  "events": [
+    {
+      "_id": "7c7aa491-3f4c-4200-8ed0-80aab6e584a5",
+      "title": "Launch Event",
+      "description": "Smoke test event",
+      "date": "2026-04-11T10:00",
+      "location": "Karachi",
+      "imageUrl": "",
+      "gallery": [],
+      "createdBy": "a68579c3-9f53-4cc7-896c-5e5dd1c21146",
+      "createdAt": "2026-04-10T12:55:11.593Z"
+    },
+    {
+      "_id": "5fee9556-012d-4e02-82f3-d174bfddc488",
+      "title": "khana",
+      "description": "khana kha lo bhai",
+      "date": "2026-04-09T17:59",
+      "location": "islamabad",
+      "imageUrl": "C:/Users/maazi/OneDrive/Desktop/mini-event-app/server/uploads/1775825976145-WhatsApp Image 2026-03-30 at 8.28.16 PM.jpeg",
+      "gallery": [],
+      "createdBy": "6fe71fb8-5b0e-4d47-b975-9575c9457392",
+      "createdAt": "2026-04-10T12:59:36.154Z"
+    }
+  ]
+}

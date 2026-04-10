@@ -1,71 +1,79 @@
-const User = require("../models/User");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const generateToken = require("../utils/generateToken");
+const User = require("../models/User");
+const { databaseReady } = require("../config/db");
+const { createUser, findUserByEmail, sanitizeUser } = require("../data/store");
 
-/**
- * Generate JWT Token
- */
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-};
-
-/**
- * Register User
- */
-exports.registerUser = async (req, res) => {
+exports.signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name = "", email = "", password = "" } = req.body;
 
-    // Check existing user
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      return res.status(400).json({ message: "Name, email, and password are required." });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashed = await bcrypt.hash(password, 10);
 
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
+    let user;
+    if (databaseReady()) {
+      const existingUser = await User.findOne({ email: email.trim().toLowerCase() });
+      if (existingUser) {
+        return res.status(409).json({ message: "User already exists." });
+      }
 
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      token: generateToken(user._id),
+      user = await User.create({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password: hashed,
+      });
+    } else {
+      user = await createUser({
+        name,
+        email,
+        password: hashed,
+      });
+    }
+
+    return res.status(201).json({
+      user: sanitizeUser(user.toObject ? user.toObject() : user),
+      token: generateToken(user._id.toString()),
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    if (error.message === "User already exists") {
+      return res.status(409).json({ message: "User already exists." });
+    }
+
+    return res.status(500).json({ message: "Unable to sign up right now." });
   }
 };
 
-/**
- * Login User
- */
-exports.loginUser = async (req, res) => {
+exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email = "", password = "" } = req.body;
 
-    const user = await User.findOne({ email });
-
-    if (user && (await bcrypt.compare(password, user.password))) {
-      res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id),
-      });
-    } else {
-      res.status(401).json({ message: "Invalid credentials" });
+    if (!email.trim() || !password.trim()) {
+      return res.status(400).json({ message: "Email and password are required." });
     }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    const user = databaseReady()
+      ? await User.findOne({ email: email.trim().toLowerCase() })
+      : await findUserByEmail(email);
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
+
+    return res.json({
+      user: sanitizeUser(user.toObject ? user.toObject() : user),
+      token: generateToken(user._id.toString()),
+    });
+  } catch {
+    return res.status(500).json({ message: "Unable to log in right now." });
   }
 };
