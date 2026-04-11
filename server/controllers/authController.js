@@ -36,7 +36,7 @@ exports.signup = async (req, res) => {
 
     return res.status(201).json({
       user: sanitizeUser(user.toObject ? user.toObject() : user),
-      token: generateToken(user._id.toString()),
+      token: generateToken(user._id.toString(), user.role),
     });
   } catch (error) {
     if (error.message === "User already exists") {
@@ -71,7 +71,7 @@ exports.login = async (req, res) => {
 
     return res.json({
       user: sanitizeUser(user.toObject ? user.toObject() : user),
-      token: generateToken(user._id.toString()),
+      token: generateToken(user._id.toString(), user.role),
     });
   } catch {
     return res.status(500).json({ message: "Unable to log in right now." });

@@ -15,6 +15,22 @@
       "password": "$2b$10$En6wK/oXDGAJNBUd5O8oi.n./KR7OLmLo3tLinEfXmPa/8AaTXiF6",
       "role": "user",
       "createdAt": "2026-04-10T12:58:51.472Z"
+    },
+    {
+      "_id": "5ce04bf3-f946-4414-ad21-bacfa5ae9fff",
+      "name": "Assignment Test",
+      "email": "assignment-test@example.com",
+      "password": "$2b$10$/9c6DEWlQ8D4fF3LaBdEbeOMsJLkQqa9VPlvhPMgxSLO6wY.28wWO",
+      "role": "user",
+      "createdAt": "2026-04-09T20:42:31.463Z"
+    },
+    {
+      "_id": "c54b4cf0-d621-4a93-a4fa-2b0839a9bd5f",
+      "name": "Admin",
+      "email": "admin@mini-event-app.local",
+      "password": "$2b$10$aF8lcS5Z7NYe83Dh0thsQu4P/wd0ZKjbbDGOW/QM2iEEFBehGaJDq",
+      "role": "admin",
+      "createdAt": "2026-04-11T15:13:18.975Z"
     }
   ],
   "events": [
@@ -39,6 +55,18 @@
       "gallery": [],
       "createdBy": "6fe71fb8-5b0e-4d47-b975-9575c9457392",
       "createdAt": "2026-04-10T12:59:36.154Z"
+    },
+    {
+      "_id": "243f4078-ff5b-4c83-af53-7ce1a77a4f3b",
+      "title": "Updated Event",
+      "description": "Updated event description for smoke testing.",
+      "date": "2026-04-13T15:30",
+      "location": "Lahore",
+      "imageUrl": "",
+      "gallery": [],
+      "createdBy": "5ce04bf3-f946-4414-ad21-bacfa5ae9fff",
+      "createdAt": "2026-04-09T20:42:31.488Z",
+      "updatedAt": "2026-04-09T20:42:31.496Z"
     }
   ]
 }

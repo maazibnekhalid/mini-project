@@ -1,44 +1,51 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
 import { signup } from "@/services/auth";
-import { useAuthStore } from "@/store/authStore";
+import { type SignupFormValues, signupSchema } from "@/utils/validation";
 
 export default function SignupPage() {
   const router = useRouter();
-  const { token, setAuth } = useAuthStore();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isAuthenticated, isHydrated, setSession } = useAuth();
+  const { notify } = useNotifications();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
 
   useEffect(() => {
-    if (token) {
+    if (isHydrated && isAuthenticated) {
       router.replace("/dashboard");
     }
-  }, [router, token]);
+  }, [isAuthenticated, isHydrated, router]);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError("");
-    setIsSubmitting(true);
-
+  const onSubmit = async (values: SignupFormValues) => {
     try {
-      const response = await signup({ name, email, password });
-      setAuth(response.data.user, response.data.token);
+      const response = await signup(values);
+      setSession(response.data.user, response.data.token);
+      notify("Account created successfully.", "success");
       router.push("/dashboard");
-    } catch (err) {
+    } catch (error) {
       const message =
-        err instanceof AxiosError
-          ? err.response?.data?.message || "Unable to sign up."
+        error instanceof AxiosError
+          ? error.response?.data?.message || "Unable to sign up."
           : "Unable to sign up.";
-      setError(message);
-    } finally {
-      setIsSubmitting(false);
+      notify(message, "error");
     }
   };
 
@@ -47,32 +54,38 @@ export default function SignupPage() {
       <section className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
         <h1 className="text-3xl font-semibold text-slate-900">Create account</h1>
         <p className="mt-2 text-sm text-slate-600">Start building your event list.</p>
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          <input
-            type="text"
-            placeholder="Full name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-            required
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-            required
-          />
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
+          <div>
+            <input
+              type="text"
+              placeholder="Full name"
+              {...register("name")}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+            />
+            {errors.name ? <p className="mt-2 text-sm text-red-600">{errors.name.message}</p> : null}
+          </div>
+
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              {...register("email")}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+            />
+            {errors.email ? <p className="mt-2 text-sm text-red-600">{errors.email.message}</p> : null}
+          </div>
+
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              {...register("password")}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+            />
+            {errors.password ? (
+              <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
+            ) : null}
+          </div>
           <button
             type="submit"
             disabled={isSubmitting}

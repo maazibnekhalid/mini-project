@@ -105,7 +105,9 @@ __turbopack_context__.s([
     "deleteEvent",
     ()=>deleteEvent,
     "getEvents",
-    ()=>getEvents
+    ()=>getEvents,
+    "updateEvent",
+    ()=>updateEvent
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/services/api.ts [app-ssr] (ecmascript)");
 ;
@@ -120,6 +122,11 @@ const getEvents = (token)=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2
         }
     });
 const deleteEvent = (id, token)=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].delete(`/events/${id}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+const updateEvent = (id, data, token)=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].put(`/events/${id}`, data, {
         headers: {
             Authorization: `Bearer ${token}`
         }

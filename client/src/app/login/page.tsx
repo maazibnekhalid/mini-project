@@ -1,43 +1,50 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
 import { login } from "@/services/auth";
-import { useAuthStore } from "@/store/authStore";
+import { type LoginFormValues, loginSchema } from "@/utils/validation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { token, setAuth } = useAuthStore();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { continueAsGuest, isAuthenticated, isHydrated, setSession } = useAuth();
+  const { notify } = useNotifications();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   useEffect(() => {
-    if (token) {
+    if (isHydrated && isAuthenticated) {
       router.replace("/dashboard");
     }
-  }, [router, token]);
+  }, [isAuthenticated, isHydrated, router]);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError("");
-    setIsSubmitting(true);
-
+  const onSubmit = async (values: LoginFormValues) => {
     try {
-      const response = await login({ email, password });
-      setAuth(response.data.user, response.data.token);
+      const response = await login(values);
+      setSession(response.data.user, response.data.token);
+      notify("Logged in successfully.", "success");
       router.push("/dashboard");
-    } catch (err) {
+    } catch (error) {
       const message =
-        err instanceof AxiosError
-          ? err.response?.data?.message || "Unable to log in."
+        error instanceof AxiosError
+          ? error.response?.data?.message || "Unable to log in."
           : "Unable to log in.";
-      setError(message);
-    } finally {
-      setIsSubmitting(false);
+      notify(message, "error");
     }
   };
 
@@ -46,24 +53,28 @@ export default function LoginPage() {
       <section className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
         <h1 className="text-3xl font-semibold text-slate-900">Welcome back</h1>
         <p className="mt-2 text-sm text-slate-600">Log in to manage your events.</p>
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-            required
-          />
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              {...register("email")}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+            />
+            {errors.email ? <p className="mt-2 text-sm text-red-600">{errors.email.message}</p> : null}
+          </div>
+
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              {...register("password")}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+            />
+            {errors.password ? (
+              <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
+            ) : null}
+          </div>
           <button
             type="submit"
             disabled={isSubmitting}
@@ -78,6 +89,25 @@ export default function LoginPage() {
             Sign up
           </Link>
         </p>
+        <div className="mt-4 flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              continueAsGuest();
+              notify("Continuing as guest.", "info");
+              router.push("/dashboard");
+            }}
+            className="w-full rounded-2xl border border-slate-200 px-4 py-3 font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            Continue as guest
+          </button>
+          <Link
+            href="/admin-login"
+            className="w-full rounded-2xl border border-amber-200 px-4 py-3 text-center font-medium text-amber-700 transition hover:bg-amber-50"
+          >
+            Admin login
+          </Link>
+        </div>
       </section>
     </main>
   );

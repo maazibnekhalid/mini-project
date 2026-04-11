@@ -12,7 +12,7 @@ export type EventItem = {
 };
 
 export const createEvent = (data: FormData, token: string) =>
-  api.post("/events", data, {
+  api.post<EventItem>("/events", data, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -23,5 +23,10 @@ export const getEvents = (token: string) =>
 
 export const deleteEvent = (id: string, token: string) =>
   api.delete(`/events/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const updateEvent = (id: string, data: FormData, token: string) =>
+  api.put<EventItem>(`/events/${id}`, data, {
     headers: { Authorization: `Bearer ${token}` },
   });

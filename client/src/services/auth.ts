@@ -10,7 +10,7 @@ export type AuthUser = {
   _id: string;
   name: string;
   email: string;
-  role: string;
+  role: "admin" | "user" | "guest";
 };
 
 export type AuthResponse = {

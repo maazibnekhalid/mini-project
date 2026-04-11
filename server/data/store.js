@@ -31,6 +31,12 @@ const writeStore = async (data) => {
   await fs.writeFile(dataFile, JSON.stringify(data, null, 2), "utf8");
 };
 
+const getAdminConfig = () => ({
+  name: process.env.ADMIN_NAME || "Admin",
+  email: (process.env.ADMIN_EMAIL || "admin@mini-event-app.local").trim().toLowerCase(),
+  password: process.env.ADMIN_PASSWORD || "Admin12345!",
+});
+
 const sanitizeUser = (user) => {
   if (!user) {
     return null;
@@ -67,6 +73,11 @@ const createUser = async ({ name, email, password, role = "user" }) => {
 const findUserByEmail = async (email) => {
   const store = await readStore();
   return store.users.find((user) => user.email === email.trim().toLowerCase()) || null;
+};
+
+const getAllUsers = async () => {
+  const store = await readStore();
+  return store.users.map(sanitizeUser);
 };
 
 const createEvent = async ({ title, description, date, location, imageUrl, gallery, createdBy }) => {
@@ -113,11 +124,66 @@ const deleteEventById = async (eventId, userId) => {
   return true;
 };
 
+const updateEventById = async (eventId, userId, updates) => {
+  const store = await readStore();
+  const eventIndex = store.events.findIndex(
+    (event) => event._id === eventId && event.createdBy === userId
+  );
+
+  if (eventIndex === -1) {
+    return null;
+  }
+
+  const currentEvent = store.events[eventIndex];
+  const nextEvent = {
+    ...currentEvent,
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+
+  store.events[eventIndex] = nextEvent;
+  await writeStore(store);
+  return nextEvent;
+};
+
+const getAllEvents = async () => {
+  const store = await readStore();
+  return [...store.events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+};
+
+const ensureAdminUser = async (bcrypt) => {
+  const store = await readStore();
+  const config = getAdminConfig();
+  const existingAdmin = store.users.find((user) => user.email === config.email);
+
+  if (existingAdmin) {
+    return sanitizeUser(existingAdmin);
+  }
+
+  const hashedPassword = await bcrypt.hash(config.password, 10);
+  const adminUser = {
+    _id: randomUUID(),
+    name: config.name,
+    email: config.email,
+    password: hashedPassword,
+    role: "admin",
+    createdAt: new Date().toISOString(),
+  };
+
+  store.users.push(adminUser);
+  await writeStore(store);
+  return sanitizeUser(adminUser);
+};
+
 module.exports = {
   createEvent,
   createUser,
   deleteEventById,
+  ensureAdminUser,
   findUserByEmail,
+  getAllEvents,
+  getAllUsers,
   getEventsByUser,
   sanitizeUser,
+  updateEventById,
 };
