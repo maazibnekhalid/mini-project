@@ -4,6 +4,8 @@ const User = require("../models/User");
 const { databaseReady } = require("../config/db");
 const { createUser, findUserByEmail, sanitizeUser } = require("../data/store");
 
+// PDF Requirement: Authentication
+// Handles user registration, password hashing, and JWT session creation.
 exports.signup = async (req, res) => {
   try {
     const { name = "", email = "", password = "" } = req.body;
@@ -47,6 +49,8 @@ exports.signup = async (req, res) => {
   }
 };
 
+// PDF Requirement: Authentication
+// Handles login for normal users and seeded admin users.
 exports.login = async (req, res) => {
   try {
     const { email = "", password = "" } = req.body;

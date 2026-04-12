@@ -7,6 +7,8 @@ const {
   updateEventById,
 } = require("../data/store");
 
+// PDF Requirement: File uploads
+// Uploaded file paths are normalized to /uploads/... so the frontend can render them.
 const normalizePath = (value) => {
   if (!value) {
     return "";
@@ -27,6 +29,8 @@ const normalizePath = (value) => {
   return filename ? `uploads/${filename}` : "";
 };
 
+// PDF Requirement: Event Management - Create
+// Creates one event with title, description, date, location, cover image, and gallery files.
 exports.createEvent = async (req, res) => {
   try {
     const { title = "", description = "", date = "", location = "" } = req.body;
@@ -67,6 +71,8 @@ exports.createEvent = async (req, res) => {
   }
 };
 
+// PDF Requirement: Event Listing
+// Returns only the logged-in user's events for the user dashboard.
 exports.getEvents = async (req, res) => {
   try {
     const events = databaseReady()
@@ -79,6 +85,7 @@ exports.getEvents = async (req, res) => {
   }
 };
 
+// PDF Requirement: Event Management - Delete
 exports.deleteEvent = async (req, res) => {
   try {
     if (databaseReady()) {
@@ -103,6 +110,8 @@ exports.deleteEvent = async (req, res) => {
   }
 };
 
+// PDF Requirement: Event Management - Edit
+// Updates a user's existing event, including optional replacement media uploads.
 exports.updateEvent = async (req, res) => {
   try {
     const { title = "", description = "", date = "", location = "" } = req.body;

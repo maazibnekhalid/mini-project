@@ -47,6 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
+      // PDF Requirement: State management for auth session
+      // Tracks signed-in users, admin role, and guest mode in one shared context.
       isAuthenticated: Boolean(user && user.role !== "guest" && token),
       isAdmin: user?.role === "admin",
       isGuest: user?.role === "guest",
@@ -65,6 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
       },
       continueAsGuest: () => {
+        // Custom Requirement: Guest mode
+        // Guest can browse the app but cannot create, edit, or delete events.
         const guestUser: AuthUser = {
           _id: "guest-session",
           name: "Guest",

@@ -3,6 +3,8 @@ const User = require("../models/User");
 const { databaseReady } = require("../config/db");
 const { getAllEvents, getAllUsers } = require("../data/store");
 
+// Custom Requirement: Admin overview
+// Admin can inspect all users and all events from one dashboard endpoint.
 exports.getOverview = async (req, res) => {
   try {
     if (databaseReady()) {

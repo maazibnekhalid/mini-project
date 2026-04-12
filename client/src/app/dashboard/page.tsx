@@ -39,6 +39,8 @@ export default function DashboardPage() {
 
     const loadDashboardData = async () => {
       try {
+        // Custom Requirement: Admin dashboard
+        // Admin sees all users and all events instead of personal event CRUD.
         if (isAdmin && token) {
           const response = await getAdminOverview(token);
           setAdminUsers(response.data.users);
@@ -47,6 +49,8 @@ export default function DashboardPage() {
           return;
         }
 
+        // PDF Requirement: Protected user dashboard
+        // Normal signed-in users only see the events they created.
         if (isAuthenticated && token) {
           const response = await getEvents(token);
           setEvents(response.data);
@@ -72,6 +76,7 @@ export default function DashboardPage() {
   );
 
   const toFormData = (values: EventFormValues) => {
+    // PDF Requirement: File uploads with cover image + gallery/documents
     const formData = new FormData();
     formData.append("title", values.title);
     formData.append("description", values.description);
@@ -89,6 +94,7 @@ export default function DashboardPage() {
       return;
     }
 
+    // PDF Requirement: Event CRUD for authenticated users
     setIsSaving(true);
 
     try {
@@ -124,6 +130,7 @@ export default function DashboardPage() {
       return;
     }
 
+    // PDF Requirement: Event delete action
     try {
       await deleteEvent(id, token);
       setEvents((current) => current.filter((eventItem) => eventItem._id !== id));

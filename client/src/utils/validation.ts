@@ -14,17 +14,21 @@ const fileListSchema = z
     typeof FileList !== "undefined" && value instanceof FileList ? Array.from(value) : []
   );
 
+// PDF Requirement: Form validation for signup
 export const signupSchema = z.object({
   name: z.string().trim().min(2, "Name is required."),
   email: z.string().trim().email("Enter a valid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
 });
 
+// PDF Requirement: Form validation for login
 export const loginSchema = z.object({
   email: z.string().trim().email("Enter a valid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
 });
 
+// PDF Requirement: Event form validation
+// Validates required fields plus allowed upload types and file size limits.
 export const eventSchema = z.object({
   title: z.string().trim().min(2, "Title is required."),
   description: z.string().trim().min(10, "Description must be at least 10 characters."),
