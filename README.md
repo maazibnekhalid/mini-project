@@ -229,6 +229,14 @@ Railway service commands:
 - Frontend build: `npm run build`
 - Frontend start: `npm run start`
 
+For Railway production install, use:
+
+```bash
+npm install --omit=dev --workspaces
+```
+
+This avoids the npm warning about `config production` while still installing only production dependencies.
+
 If you want to deploy only the backend, keep `NEXT_PUBLIC_API_URL` set in the frontend service and use the backend API URL there.
 
 ### Fallback Storage
