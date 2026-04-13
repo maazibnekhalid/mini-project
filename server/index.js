@@ -23,7 +23,7 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.all("*", (req, res) => {
+app.use((req, res) => {
   return handle(req, res);
 });
 
