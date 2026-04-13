@@ -1,6 +1,14 @@
 {
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
-    "build": "cd client && npm install && npm run build",
-    "start": "cd server && npm install && node index.js"
+    "install": "npm install --workspaces",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server run start",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev"
   }
 }

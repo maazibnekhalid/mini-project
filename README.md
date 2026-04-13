@@ -103,6 +103,14 @@ server/
 
 ### 1. Install Dependencies
 
+From the repo root:
+
+```powershell
+npm install
+```
+
+This installs both `server` and `client` workspace dependencies.
+
 Backend:
 
 ```powershell
@@ -193,6 +201,35 @@ show collections
 db.users.find().pretty()
 db.events.find().pretty()
 ```
+
+### Railway Deployment
+
+To deploy the full app on Railway, use two services:
+
+1. Backend: deploy the `/server` folder as a Node service.
+2. Frontend: deploy the `/client` folder as a Next.js service.
+
+Required environment variables:
+
+- `MONGO_URI` — your MongoDB connection string.
+- `JWT_SECRET` — a secure JWT signing key.
+- `NEXT_PUBLIC_API_URL` — the backend service URL ending with `/api`.
+
+Example for Railway frontend service:
+
+```env
+NEXT_PUBLIC_API_URL=https://your-backend-service.up.railway.app/api
+```
+
+Railway service commands:
+
+- Backend install: `npm install`
+- Backend start: `npm start`
+- Frontend install: `npm install`
+- Frontend build: `npm run build`
+- Frontend start: `npm run start`
+
+If you want to deploy only the backend, keep `NEXT_PUBLIC_API_URL` set in the frontend service and use the backend API URL there.
 
 ### Fallback Storage
 
