@@ -23,11 +23,7 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.get("/", (req, res) => {
-  return handle(req, res);
-});
-
-app.all("/*", (req, res) => {
+app.all("*", (req, res) => {
   return handle(req, res);
 });
 
@@ -44,6 +40,7 @@ app.use((error, req, res, next) => {
 });
 
 const startServer = async () => {
+  await nextApp.prepare();
   await connectDB();
   const adminUser = await ensureAdminAccount();
 
