@@ -204,46 +204,45 @@ db.events.find().pretty()
 
 ### Railway Deployment
 
-To deploy the full app on Railway, use two services:
+This project now supports a single Railway service deployment from the repo root.
 
-1. Backend: deploy the `/server` folder as a Node service.
-2. Frontend: deploy the `/client` folder as a Next.js service.
+Use these commands in Railway:
+
+- Install: `npm run ci`
+- Build: `npm run build`
+- Start: `npm start`
+
+The root service does the following:
+
+- installs both `client` and `server` workspace dependencies
+- builds the Next.js frontend in `client`
+- starts the Express backend from `server`
+- serves the frontend from the same service via Next.js
 
 Required environment variables:
 
 - `MONGO_URI` — your MongoDB connection string.
 - `JWT_SECRET` — a secure JWT signing key.
-- `NEXT_PUBLIC_API_URL` — the backend service URL ending with `/api`.
 
-Example for Railway frontend service:
+If you choose to deploy as separate Railway services instead, keep this behavior in mind:
+
+- Frontend service should use `client/package.json`
+- Backend service should use `server/package.json`
+- Frontend `NEXT_PUBLIC_API_URL` must point to the backend URL ending with `/api`
+
+Example for separate frontend env:
 
 ```env
 NEXT_PUBLIC_API_URL=https://your-backend-service.up.railway.app/api
 ```
 
-Railway service commands:
-
-- Backend install: `npm install`
-- Backend start: `npm start`
-- Frontend install: `npm install`
-- Frontend build: `npm run build`
-- Frontend start: `npm run start`
-
-For Railway production install, use:
-
-```bash
-npm run ci
-```
-
-If you need the manual workspace install command, use:
+For manual workspace install, use:
 
 ```bash
 npm install --omit=dev --workspaces
 ```
 
 This avoids the npm warning about `config production` while still installing only production dependencies.
-
-If you want to deploy only the backend, keep `NEXT_PUBLIC_API_URL` set in the frontend service and use the backend API URL there.
 
 ### Fallback Storage
 
