@@ -9,13 +9,13 @@ const {
 
 // PDF Requirement: File uploads
 // Uploaded file paths are normalized to /uploads/... so the frontend can render them.
-const normalizePath = (value) => {
+const normalizePath = (value) => {        // If the value is falsy (undefined, null, empty string), return an empty string to prevent errors in the frontend when rendering image URLs.
   if (!value) {
     return "";
   }
 
-  const normalized = value.replace(/\\/g, "/");
-  const uploadsIndex = normalized.lastIndexOf("/uploads/");
+  const normalized = value.replace(/\\/g, "/");   // Normalize Windows backslashes to forward slashes for consistent URL formatting across different operating systems.
+  const uploadsIndex = normalized.lastIndexOf("/uploads/");   // If the normalized path contains "/uploads/", return the substring starting from the last occurrence of "/uploads/" to ensure we get the correct relative path for frontend rendering.
 
   if (uploadsIndex >= 0) {
     return normalized.slice(uploadsIndex + 1);
@@ -154,7 +154,7 @@ exports.updateEvent = async (req, res) => {
       return res.json(currentEvent);
     }
 
-    const updatedEvent = await updateEventById(req.params.id, req.user.id, {
+    const updatedEvent = await updateEventById(req.params.id, req.user.id, {    // If the database is not ready, use the in-memory store function to update the event by ID, passing the updated fields. Only include the imageUrl and gallery fields if they were provided in the request to avoid overwriting existing media with undefined values.
       title: title.trim(),
       description: description.trim(),
       date,

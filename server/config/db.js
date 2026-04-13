@@ -1,20 +1,20 @@
-const mongoose = require("mongoose");
+const mongoose = require("mongoose");   // MongoDB connection setup
 
-let isDatabaseReady = false;
+let isDatabaseReady = false;      // Flag to indicate if the database connection is ready
 
-const hasUsableMongoUri = () => {
+const hasUsableMongoUri = () => {     // Check if the MONGO_URI environment variable is set and does not contain the placeholder text
   const uri = process.env.MONGO_URI;
 
   return Boolean(uri) && !uri.includes("your_mongodb_connection");
 };
 
-const connectDB = async () => {
+const connectDB = async () => {     // Attempt to connect to MongoDB using the MONGO_URI environment variable
   if (!hasUsableMongoUri()) {
     console.warn("MongoDB connection skipped. Using local JSON storage fallback.");
     return false;
   }
 
-  try {
+  try {     // Attempt to connect to MongoDB
     await mongoose.connect(process.env.MONGO_URI);
     isDatabaseReady = true;
     console.log("MongoDB connected");
@@ -25,11 +25,11 @@ const connectDB = async () => {
     isDatabaseReady = false;
     return false;
   }
-};
+};    
 
-const databaseReady = () => isDatabaseReady;
+const databaseReady = () => isDatabaseReady;      // Function to check if the database connection is ready
 
-module.exports = {
+module.exports = {      // Export the functions for use in other parts of the application
   connectDB,
   databaseReady,
 };

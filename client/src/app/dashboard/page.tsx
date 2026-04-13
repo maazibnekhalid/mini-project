@@ -94,7 +94,7 @@ export default function DashboardPage() {
       return;
     }
 
-    // PDF Requirement: Event CRUD for authenticated users
+    //  Event CRUD for authenticated users
     setIsSaving(true);
 
     try {

@@ -3,7 +3,7 @@
 import { createContext, useEffect, useMemo, useState } from "react";
 import type { AuthUser } from "@/services/auth";
 
-type AuthContextValue = {
+type AuthContextValue = {       // Authentication context
   isAuthenticated: boolean;
   isAdmin: boolean;
   isGuest: boolean;
@@ -15,7 +15,7 @@ type AuthContextValue = {
   clearSession: () => void;
 };
 
-export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined);    // Create a React context for authentication, initialized with undefined. This context will hold the authentication state and functions to manage the session.
 
 const STORAGE_KEY = "mini-event-auth";
 
@@ -24,12 +24,12 @@ type StoredSession = {
   token: string | null;
 };
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {   // Authentication provider component
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  useEffect(() => {
+  useEffect(() => {   // On component mount, attempt to load the authentication session from localStorage. If a valid session is found, update the user and token state. 
     try {
       const storedValue = window.localStorage.getItem(STORAGE_KEY);
 
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
     } finally {
-      setIsHydrated(true);
+      setIsHydrated(true);    // Mark the authentication state as hydrated, allowing the app to render based on the loaded session.
     }
   }, []);
 
