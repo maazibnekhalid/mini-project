@@ -5,8 +5,8 @@
     "server"
   ],
   "scripts": {
-    "install": "npm install --workspaces",
-    "install:ci": "npm install --workspaces --omit=dev",
+    "bootstrap": "npm install --workspaces",
+    "ci": "npm install --workspaces --omit=dev",
     "build": "npm --prefix client run build",
     "start": "npm --prefix server run start",
     "dev:server": "npm --prefix server run dev",

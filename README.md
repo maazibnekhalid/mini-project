@@ -232,6 +232,12 @@ Railway service commands:
 For Railway production install, use:
 
 ```bash
+npm run ci
+```
+
+If you need the manual workspace install command, use:
+
+```bash
 npm install --omit=dev --workspaces
 ```
 
