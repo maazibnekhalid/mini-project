@@ -2,7 +2,7 @@ const Event = require("../models/Event");
 const { databaseReady } = require("../config/db");
 const {
   createEvent: createLocalEvent,
-  getEventsByUser,
+  getAllEvents,
   deleteEventById,
   updateEventById,
 } = require("../data/store");
@@ -71,13 +71,13 @@ exports.createEvent = async (req, res) => {
   }
 };
 
-// PDF Requirement: Event Listing
-// Returns only the logged-in user's events for the user dashboard.
+// show event list
+// Everyone, including guests, can load the shared event list from this endpoint.
 exports.getEvents = async (req, res) => {
   try {
     const events = databaseReady()
-      ? await Event.find({ createdBy: req.user.id }).sort({ date: 1 })
-      : await getEventsByUser(req.user.id);
+      ? await Event.find().sort({ date: 1 })
+      : await getAllEvents();
 
     return res.json(events);
   } catch {

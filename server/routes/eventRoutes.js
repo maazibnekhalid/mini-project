@@ -8,10 +8,14 @@ const {
   updateEvent,
 } = require("../controllers/eventController");
 
-router.get("/", auth, getEvents);
+// show event list
+// Public read access lets guests and signed-in users browse every event.
+router.get("/", getEvents);
 
 router.post(
   "/",
+  // give event authorization
+  // Only signed-in users can create new events.
   auth,
   upload.fields([
     { name: "image", maxCount: 1 },
@@ -20,10 +24,14 @@ router.post(
   createEvent
 );
 
+// give event authorization
+// Only the authenticated event owner can delete an event.
 router.delete("/:id", auth, deleteEvent);
 
 router.put(
   "/:id",
+  // give event authorization
+  // Only the authenticated event owner can update an event.
   auth,
   upload.fields([
     { name: "image", maxCount: 1 },

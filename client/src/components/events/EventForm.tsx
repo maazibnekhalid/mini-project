@@ -9,11 +9,18 @@ import { type EventFormInput, type EventFormValues, eventSchema } from "@/utils/
 type EventFormProps = {
   initialEvent?: EventItem | null;
   isSubmitting: boolean;
+  resetAfterCreateKey?: number;
   onCancel?: () => void;
   onSubmit: (values: EventFormValues) => Promise<void>;
 };
 
-export function EventForm({ initialEvent, isSubmitting, onCancel, onSubmit }: EventFormProps) {
+export function EventForm({
+  initialEvent,
+  isSubmitting,
+  resetAfterCreateKey = 0,
+  onCancel,
+  onSubmit,
+}: EventFormProps) {
   const {
     register,
     handleSubmit,
@@ -39,6 +46,23 @@ export function EventForm({ initialEvent, isSubmitting, onCancel, onSubmit }: Ev
       gallery: undefined,
     });
   }, [initialEvent, reset]);
+
+  useEffect(() => {
+    if (initialEvent || resetAfterCreateKey === 0) {
+      return;
+    }
+
+    // reset event form after add
+    // Clear the create form so old text does not stay visible after a successful upload.
+    reset({
+      title: "",
+      description: "",
+      date: "",
+      location: "",
+      image: undefined,
+      gallery: undefined,
+    });
+  }, [initialEvent, reset, resetAfterCreateKey]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="rounded-3xl bg-white p-6 shadow-lg sm:p-8">

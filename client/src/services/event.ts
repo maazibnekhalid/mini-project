@@ -16,10 +16,8 @@ export const createEvent = (data: FormData, token: string) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
-export const getEvents = (token: string) =>
-  api.get<EventItem[]>("/events", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const getEvents = (token?: string | null) =>
+  api.get<EventItem[]>("/events", token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
 
 export const deleteEvent = (id: string, token: string) =>
   api.delete(`/events/${id}`, {

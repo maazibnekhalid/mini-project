@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
+  const [resetAfterCreateKey, setResetAfterCreateKey] = useState(0);
   const [activePanel, setActivePanel] = useState<"form" | "events" | "overview">("form");
 
   useEffect(() => {
@@ -49,9 +50,9 @@ export default function DashboardPage() {
           return;
         }
 
-        // PDF Requirement: Protected user dashboard
-        // Normal signed-in users only see the events they created.
-        if (isAuthenticated && token) {
+        // show event list
+        // Guests and normal signed-in users both load the same public event list here.
+        if (user) {
           const response = await getEvents(token);
           setEvents(response.data);
           return;
@@ -75,6 +76,9 @@ export default function DashboardPage() {
     [events]
   );
 
+  const canManageEvent = (eventItem: EventItem) =>
+    Boolean(isAuthenticated && !isAdmin && user && eventItem.createdBy === user._id);
+
   const toFormData = (values: EventFormValues) => {
     // PDF Requirement: File uploads with cover image + gallery/documents
     const formData = new FormData();
@@ -94,7 +98,8 @@ export default function DashboardPage() {
       return;
     }
 
-    //  Event CRUD for authenticated users
+    // give event authorization
+    // Event create and edit actions stay limited to signed-in non-admin users.
     setIsSaving(true);
 
     try {
@@ -111,6 +116,7 @@ export default function DashboardPage() {
       } else {
         const response = await createEvent(formData, token);
         setEvents((current) => [...current, response.data]);
+        setResetAfterCreateKey((current) => current + 1);
         notify("Event created successfully.", "success");
         setActivePanel("events");
       }
@@ -327,32 +333,35 @@ export default function DashboardPage() {
           </section>
         ) : null}
 
-        {isAuthenticated && !isAdmin ? (
+        {!isAdmin ? (
         <section className="grid gap-8">
-          <section className={`${activePanel === "form" ? "block" : "hidden"}`}>
-            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-950 px-5 py-4 text-white">
-                <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-rose-400" />
-                  <span className="h-3 w-3 rounded-full bg-amber-300" />
-                  <span className="h-3 w-3 rounded-full bg-emerald-400" />
+          {isAuthenticated ? (
+            <section className={`${activePanel === "form" ? "block" : "hidden"}`}>
+              <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-200 bg-slate-950 px-5 py-4 text-white">
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-rose-400" />
+                    <span className="h-3 w-3 rounded-full bg-amber-300" />
+                    <span className="h-3 w-3 rounded-full bg-emerald-400" />
+                  </div>
+                  <p className="text-sm font-medium">
+                    {editingEvent ? "Edit Event" : "Add Event"}
+                  </p>
                 </div>
-                <p className="text-sm font-medium">
-                  {editingEvent ? "Edit Event" : "Add Event"}
-                </p>
+                <div className="bg-white">
+                  <EventForm
+                    initialEvent={editingEvent}
+                    isSubmitting={isSaving}
+                    resetAfterCreateKey={resetAfterCreateKey}
+                    onCancel={() => setEditingEvent(null)}
+                    onSubmit={handleSaveEvent}
+                  />
+                </div>
               </div>
-              <div className="bg-white">
-                <EventForm
-                  initialEvent={editingEvent}
-                  isSubmitting={isSaving}
-                  onCancel={() => setEditingEvent(null)}
-                  onSubmit={handleSaveEvent}
-                />
-              </div>
-            </div>
-          </section>
+            </section>
+          ) : null}
 
-          <section className={`${activePanel === "events" ? "block" : "hidden"}`}>
+          <section className={`${isAuthenticated ? (activePanel === "events" ? "block" : "hidden") : "block"}`}>
             <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
               <div className="flex items-center justify-between border-b border-slate-200 bg-slate-950 px-5 py-4 text-white">
                 <div className="flex items-center gap-2">
@@ -360,18 +369,18 @@ export default function DashboardPage() {
                   <span className="h-3 w-3 rounded-full bg-amber-300" />
                   <span className="h-3 w-3 rounded-full bg-emerald-400" />
                 </div>
-                <p className="text-sm font-medium">My Events</p>
+                <p className="text-sm font-medium">Event List</p>
               </div>
               <section className="p-6 sm:p-8">
                 <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-2xl font-semibold text-slate-900">Your events</h2>
+                  <h2 className="text-2xl font-semibold text-slate-900">All events</h2>
                   <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600">
                     {sortedEvents.length} total
                   </span>
                 </div>
                 {isLoading ? <p className="mt-6 text-slate-500">Loading events...</p> : null}
                 {!isLoading && sortedEvents.length === 0 ? (
-                  <p className="mt-6 text-slate-500">No events yet. Create your first one from the form.</p>
+                  <p className="mt-6 text-slate-500">No events yet. The shared event list will appear here.</p>
                 ) : null}
                 <div className="mt-6 space-y-4">
                   {sortedEvents.map((eventItem) => (
@@ -381,25 +390,27 @@ export default function DashboardPage() {
                           <h3 className="text-lg font-semibold text-slate-900">{eventItem.title}</h3>
                           <p className="mt-1 text-sm text-slate-600">{eventItem.location}</p>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingEvent(eventItem);
-                              setActivePanel("form");
-                            }}
-                            className="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(eventItem._id)}
-                            className="rounded-full border border-red-200 px-3 py-1 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                          >
-                            Delete
-                          </button>
-                        </div>
+                        {canManageEvent(eventItem) ? (
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingEvent(eventItem);
+                                setActivePanel("form");
+                              }}
+                              className="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(eventItem._id)}
+                              className="rounded-full border border-red-200 px-3 py-1 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
                       <p className="mt-3 text-sm leading-6 text-slate-700">{eventItem.description}</p>
                       <p className="mt-3 text-sm text-slate-500">{new Date(eventItem.date).toLocaleString()}</p>

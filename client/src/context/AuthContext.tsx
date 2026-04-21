@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useEffect, useMemo, useState } from "react";
+import { createContext, useMemo, useState } from "react";
 import type { AuthUser } from "@/services/auth";
 
 type AuthContextValue = {       // Authentication context
@@ -25,25 +25,23 @@ type StoredSession = {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {   // Authentication provider component
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [session, setSessionState] = useState<StoredSession | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
 
-  useEffect(() => {   // On component mount, attempt to load the authentication session from localStorage. If a valid session is found, update the user and token state. 
     try {
       const storedValue = window.localStorage.getItem(STORAGE_KEY);
-
-      if (storedValue) {
-        const parsed = JSON.parse(storedValue) as StoredSession;
-        setUser(parsed.user);
-        setToken(parsed.token);
-      }
+      return storedValue ? (JSON.parse(storedValue) as StoredSession) : null;
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
-    } finally {
-      setIsHydrated(true);    // Mark the authentication state as hydrated, allowing the app to render based on the loaded session.
+      return null;
     }
-  }, []);
+  });
+
+  const user = session?.user ?? null;
+  const token = session?.token ?? null;
+  const isHydrated = true;
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -56,8 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {   //
       token,
       user,
       setSession: (nextUser, nextToken) => {
-        setUser(nextUser);
-        setToken(nextToken);
+        setSessionState({ user: nextUser, token: nextToken });
         window.localStorage.setItem(
           STORAGE_KEY,
           JSON.stringify({
@@ -76,8 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {   //
           role: "guest",
         };
 
-        setUser(guestUser);
-        setToken(null);
+        setSessionState({ user: guestUser, token: null });
         window.localStorage.setItem(
           STORAGE_KEY,
           JSON.stringify({
@@ -87,8 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {   //
         );
       },
       clearSession: () => {
-        setUser(null);
-        setToken(null);
+        setSessionState(null);
         window.localStorage.removeItem(STORAGE_KEY);
       },
     }),
