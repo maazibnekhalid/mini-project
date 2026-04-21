@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
   const [resetAfterCreateKey, setResetAfterCreateKey] = useState(0);
-  const [activePanel, setActivePanel] = useState<"form" | "events" | "overview">("form");
+  const [activePanel, setActivePanel] = useState<"form" | "all-events" | "my-events" | "overview">("form");
 
   useEffect(() => {
     if (!isHydrated) {
@@ -75,6 +75,10 @@ export default function DashboardPage() {
     () => [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
     [events]
   );
+  const myEvents = useMemo(
+    () => sortedEvents.filter((eventItem) => user && eventItem.createdBy === user._id),
+    [sortedEvents, user]
+  );
 
   const canManageEvent = (eventItem: EventItem) =>
     Boolean(isAuthenticated && !isAdmin && user && eventItem.createdBy === user._id);
@@ -112,13 +116,13 @@ export default function DashboardPage() {
         );
         notify("Event updated successfully.", "success");
         setEditingEvent(null);
-        setActivePanel("events");
+        setActivePanel("my-events");
       } else {
         const response = await createEvent(formData, token);
         setEvents((current) => [...current, response.data]);
         setResetAfterCreateKey((current) => current + 1);
         notify("Event created successfully.", "success");
-        setActivePanel("events");
+        setActivePanel("my-events");
       }
     } catch (error) {
       const message =
@@ -209,9 +213,20 @@ export default function DashboardPage() {
             </button>
             <button
               type="button"
-              onClick={() => setActivePanel("events")}
+              onClick={() => setActivePanel("all-events")}
               className={`rounded-full px-5 py-3 text-sm font-medium transition ${
-                activePanel === "events"
+                activePanel === "all-events"
+                  ? "bg-slate-900 text-white"
+                  : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              All Events Window
+            </button>
+            <button
+              type="button"
+              onClick={() => setActivePanel("my-events")}
+              className={`rounded-full px-5 py-3 text-sm font-medium transition ${
+                activePanel === "my-events"
                   ? "bg-slate-900 text-white"
                   : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
               }`}
@@ -361,7 +376,7 @@ export default function DashboardPage() {
             </section>
           ) : null}
 
-          <section className={`${isAuthenticated ? (activePanel === "events" ? "block" : "hidden") : "block"}`}>
+          <section className={`${isAuthenticated ? (activePanel === "all-events" ? "block" : "hidden") : "block"}`}>
             <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
               <div className="flex items-center justify-between border-b border-slate-200 bg-slate-950 px-5 py-4 text-white">
                 <div className="flex items-center gap-2">
@@ -390,27 +405,6 @@ export default function DashboardPage() {
                           <h3 className="text-lg font-semibold text-slate-900">{eventItem.title}</h3>
                           <p className="mt-1 text-sm text-slate-600">{eventItem.location}</p>
                         </div>
-                        {canManageEvent(eventItem) ? (
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingEvent(eventItem);
-                                setActivePanel("form");
-                              }}
-                              className="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(eventItem._id)}
-                              className="rounded-full border border-red-200 px-3 py-1 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        ) : null}
                       </div>
                       <p className="mt-3 text-sm leading-6 text-slate-700">{eventItem.description}</p>
                       <p className="mt-3 text-sm text-slate-500">{new Date(eventItem.date).toLocaleString()}</p>
@@ -497,6 +491,145 @@ export default function DashboardPage() {
               </section>
             </div>
           </section>
+
+          {isAuthenticated ? (
+            <section className={`${activePanel === "my-events" ? "block" : "hidden"}`}>
+              <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-200 bg-slate-950 px-5 py-4 text-white">
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-rose-400" />
+                    <span className="h-3 w-3 rounded-full bg-amber-300" />
+                    <span className="h-3 w-3 rounded-full bg-emerald-400" />
+                  </div>
+                  <p className="text-sm font-medium">My Events</p>
+                </div>
+                <section className="p-6 sm:p-8">
+                  <div className="flex items-center justify-between gap-4">
+                    <h2 className="text-2xl font-semibold text-slate-900">My events</h2>
+                    <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600">
+                      {myEvents.length} total
+                    </span>
+                  </div>
+                  {isLoading ? <p className="mt-6 text-slate-500">Loading your events...</p> : null}
+                  {!isLoading && myEvents.length === 0 ? (
+                    <p className="mt-6 text-slate-500">You have not created any events yet.</p>
+                  ) : null}
+                  <div className="mt-6 space-y-4">
+                    {myEvents.map((eventItem) => (
+                      <article key={eventItem._id} className="rounded-2xl border border-slate-200 p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-slate-900">{eventItem.title}</h3>
+                            <p className="mt-1 text-sm text-slate-600">{eventItem.location}</p>
+                          </div>
+                          {canManageEvent(eventItem) ? (
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEvent(eventItem);
+                                  setActivePanel("form");
+                                }}
+                                className="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(eventItem._id)}
+                                className="rounded-full border border-red-200 px-3 py-1 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                        <p className="mt-3 text-sm leading-6 text-slate-700">{eventItem.description}</p>
+                        <p className="mt-3 text-sm text-slate-500">{new Date(eventItem.date).toLocaleString()}</p>
+                        <div className="mt-4 space-y-4">
+                          {eventItem.imageUrl ? (
+                            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                              <div className="relative h-48 w-full">
+                                <Image
+                                  src={getUploadUrl(eventItem.imageUrl)}
+                                  alt={`${eventItem.title} cover`}
+                                  fill
+                                  unoptimized
+                                  className="object-cover"
+                                />
+                              </div>
+                              <div className="flex items-center justify-between px-4 py-3">
+                                <p className="text-sm font-medium text-slate-800">Cover image</p>
+                                <a
+                                  href={getUploadUrl(eventItem.imageUrl)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-sm font-medium text-cyan-700"
+                                >
+                                  Open
+                                </a>
+                              </div>
+                            </div>
+                          ) : null}
+                          {eventItem.gallery?.length ? (
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              {eventItem.gallery.map((filePath, index) => {
+                                const fileUrl = getUploadUrl(filePath);
+
+                                if (isImageFile(filePath)) {
+                                  return (
+                                    <div
+                                      key={`${eventItem._id}-${filePath}-${index}`}
+                                      className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+                                    >
+                                      <div className="relative h-40 w-full">
+                                        <Image
+                                          src={fileUrl}
+                                          alt={`${eventItem.title} media ${index + 1}`}
+                                          fill
+                                          unoptimized
+                                          className="object-cover"
+                                        />
+                                      </div>
+                                      <div className="flex items-center justify-between px-4 py-3">
+                                        <p className="text-sm font-medium text-slate-800">
+                                          Gallery image {index + 1}
+                                        </p>
+                                        <a
+                                          href={fileUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="text-sm font-medium text-cyan-700"
+                                        >
+                                          Open
+                                        </a>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <a
+                                    key={`${eventItem._id}-${filePath}-${index}`}
+                                    href={fileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                                  >
+                                    View file {index + 1}
+                                  </a>
+                                );
+                              })}
+                            </div>
+                          ) : null}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            </section>
+          ) : null}
         </section>
         ) : null}
       </div>
